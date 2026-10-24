@@ -2,15 +2,15 @@
 Imports System.IO
 Imports System.Text.RegularExpressions
 Imports System.Threading
+Imports System.Windows.Forms.Design
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement
+Imports Assimp
 
 
 Public Class ModalWindow
     Private rootFolder As String = ""
     Private resolution As Integer = 0
     Private cts As CancellationTokenSource
-
-    Private fbxLoader As New Assimp.AssimpContext()
-
 
     Private suffixOrder As New List(Of KeyValuePair(Of Integer, String)) From {
         New KeyValuePair(Of Integer, String)(10, "_AO"), ' R, priority over Cavity
@@ -50,6 +50,28 @@ Public Class ModalWindow
                 pbPreview.Image = Image.FromStream(imgStream)
             End Using
 
+            For Each c As DataGridViewCell In parentCtrl.Data.Cells
+                If c.OwningColumn.DataPropertyName = "category" Then
+                    If c.Value.ToString = "3d" Then
+                        Dim fbxPath As String = IO.Directory.EnumerateFiles(rootFolder, "*_LOD0.fbx", IO.SearchOption.AllDirectories).FirstOrDefault()
+                        If fbxPath.Length > 0 AndAlso IO.File.Exists(fbxPath) Then
+                            Using fbxLoader As New Assimp.AssimpContext
+
+                                Dim scene As Scene = fbxLoader.ImportFile(
+                                                            fbxPath,
+                                                            PostProcessSteps.Triangulate Or
+                                                            PostProcessSteps.GenerateSmoothNormals Or
+                                                            PostProcessSteps.JoinIdenticalVertices)
+
+                                ' Resolve relative texture paths against the model's folder.
+                                OpenglRenderer1.SetTextureBaseDirectory(System.IO.Path.GetDirectoryName(fbxPath))
+                                OpenglRenderer1.LoadFbxScene(scene)
+                            End Using
+                        End If
+                    End If
+                End If
+            Next
+
             ' Show the modal panel
             ' Take a screenshot of the current form
             ' Take a screenshot of only the client area (without title bar and borders)
@@ -69,7 +91,7 @@ Public Class ModalWindow
         End If
     End Sub
 
-    Private Sub Load3DPreview()
+    Private Sub Load3DPreview(path As String)
 
     End Sub
 

@@ -23,7 +23,6 @@ Partial Class ModalWindow
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         components = New ComponentModel.Container()
-        pbPreview = New PictureBox()
         rtbInfo = New RichTextBox()
         ContextMenuStrip1 = New ContextMenuStrip(components)
         tsmUberPacker = New ToolStripMenuItem()
@@ -43,34 +42,24 @@ Partial Class ModalWindow
         TabControl1 = New TabControl()
         TabPage1 = New TabPage()
         TabPage2 = New TabPage()
-        CType(pbPreview, ComponentModel.ISupportInitialize).BeginInit()
+        pbPreview = New PictureBox()
+        OpenglRenderer1 = New OpenGLRenderer()
         ContextMenuStrip1.SuspendLayout()
         modalContent.SuspendLayout()
         TabControl1.SuspendLayout()
         TabPage1.SuspendLayout()
+        TabPage2.SuspendLayout()
+        CType(pbPreview, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
-        ' 
-        ' pbPreview
-        ' 
-        pbPreview.BackColor = Color.FromArgb(CByte(56), CByte(56), CByte(56))
-        pbPreview.Dock = DockStyle.Fill
-        pbPreview.Location = New Point(3, 3)
-        pbPreview.Margin = New Padding(0)
-        pbPreview.MaximumSize = New Size(1024, 1024)
-        pbPreview.MinimumSize = New Size(512, 512)
-        pbPreview.Name = "pbPreview"
-        pbPreview.Size = New Size(512, 512)
-        pbPreview.SizeMode = PictureBoxSizeMode.StretchImage
-        pbPreview.TabIndex = 0
-        pbPreview.TabStop = False
         ' 
         ' rtbInfo
         ' 
         rtbInfo.BackColor = Color.FromArgb(CByte(56), CByte(56), CByte(56))
         rtbInfo.BorderStyle = BorderStyle.None
         rtbInfo.ContextMenuStrip = ContextMenuStrip1
+        rtbInfo.Dock = DockStyle.Right
         rtbInfo.ForeColor = Color.WhiteSmoke
-        rtbInfo.Location = New Point(518, 0)
+        rtbInfo.Location = New Point(519, 0)
         rtbInfo.Margin = New Padding(0)
         rtbInfo.MaximumSize = New Size(300, 1024)
         rtbInfo.MinimumSize = New Size(300, 512)
@@ -162,6 +151,7 @@ Partial Class ModalWindow
         ' 
         ' modalContent
         ' 
+        modalContent.Controls.Add(TabControl1)
         modalContent.Controls.Add(lblStatus)
         modalContent.Controls.Add(btnCancel)
         modalContent.Controls.Add(pBar)
@@ -211,12 +201,15 @@ Partial Class ModalWindow
         ' 
         ' TabControl1
         ' 
+        TabControl1.Alignment = TabAlignment.Left
         TabControl1.Controls.Add(TabPage1)
         TabControl1.Controls.Add(TabPage2)
-        TabControl1.Location = New Point(40, 22)
+        TabControl1.Dock = DockStyle.Fill
+        TabControl1.Location = New Point(0, 0)
+        TabControl1.Multiline = True
         TabControl1.Name = "TabControl1"
         TabControl1.SelectedIndex = 0
-        TabControl1.Size = New Size(525, 540)
+        TabControl1.Size = New Size(519, 512)
         TabControl1.SizeMode = TabSizeMode.Fixed
         TabControl1.TabIndex = 5
         ' 
@@ -224,25 +217,42 @@ Partial Class ModalWindow
         ' 
         TabPage1.BackColor = Color.FromArgb(CByte(56), CByte(56), CByte(56))
         TabPage1.Controls.Add(pbPreview)
-        TabPage1.Cursor = Cursors.IBeam
         TabPage1.ForeColor = Color.WhiteSmoke
-        TabPage1.Location = New Point(4, 24)
+        TabPage1.Location = New Point(27, 4)
         TabPage1.Name = "TabPage1"
         TabPage1.Padding = New Padding(3)
-        TabPage1.Size = New Size(517, 512)
+        TabPage1.Size = New Size(488, 504)
         TabPage1.TabIndex = 0
-        TabPage1.Text = "Preview image"
+        TabPage1.Text = "2D Preview"
         ' 
         ' TabPage2
         ' 
         TabPage2.BackColor = Color.FromArgb(CByte(56), CByte(56), CByte(56))
+        TabPage2.Controls.Add(OpenglRenderer1)
         TabPage2.ForeColor = Color.WhiteSmoke
-        TabPage2.Location = New Point(4, 24)
+        TabPage2.Location = New Point(27, 4)
         TabPage2.Name = "TabPage2"
         TabPage2.Padding = New Padding(3)
-        TabPage2.Size = New Size(517, 512)
+        TabPage2.Size = New Size(488, 504)
         TabPage2.TabIndex = 1
-        TabPage2.Text = "3D Viewer"
+        TabPage2.Text = "3D Preview"
+        ' 
+        ' pbPreview
+        ' 
+        pbPreview.Dock = DockStyle.Fill
+        pbPreview.Location = New Point(3, 3)
+        pbPreview.Name = "pbPreview"
+        pbPreview.Size = New Size(482, 498)
+        pbPreview.TabIndex = 0
+        pbPreview.TabStop = False
+        ' 
+        ' OpenglRenderer1
+        ' 
+        OpenglRenderer1.Dock = DockStyle.Fill
+        OpenglRenderer1.Location = New Point(3, 3)
+        OpenglRenderer1.Name = "OpenglRenderer1"
+        OpenglRenderer1.Size = New Size(482, 498)
+        OpenglRenderer1.TabIndex = 0
         ' 
         ' ModalWindow
         ' 
@@ -250,20 +260,18 @@ Partial Class ModalWindow
         AutoScaleMode = AutoScaleMode.Font
         BackColor = Color.FromArgb(CByte(36), CByte(36), CByte(36))
         BackgroundImageLayout = ImageLayout.Center
-        Controls.Add(TabControl1)
         Controls.Add(modalContent)
         Margin = New Padding(0)
         Name = "ModalWindow"
         Size = New Size(970, 642)
-        CType(pbPreview, ComponentModel.ISupportInitialize).EndInit()
         ContextMenuStrip1.ResumeLayout(False)
         modalContent.ResumeLayout(False)
         TabControl1.ResumeLayout(False)
         TabPage1.ResumeLayout(False)
+        TabPage2.ResumeLayout(False)
+        CType(pbPreview, ComponentModel.ISupportInitialize).EndInit()
         ResumeLayout(False)
     End Sub
-
-    Friend WithEvents pbPreview As PictureBox
     Friend WithEvents rtbInfo As RichTextBox
     Friend WithEvents modalContent As Panel
     Friend WithEvents ContextMenuStrip1 As ContextMenuStrip
@@ -283,5 +291,7 @@ Partial Class ModalWindow
     Friend WithEvents TabControl1 As TabControl
     Friend WithEvents TabPage1 As TabPage
     Friend WithEvents TabPage2 As TabPage
+    Friend WithEvents pbPreview As PictureBox
+    Friend WithEvents OpenglRenderer1 As OpenGLRenderer
 
 End Class
