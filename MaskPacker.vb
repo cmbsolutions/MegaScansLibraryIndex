@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Runtime.InteropServices
 Imports SkiaSharp
 
 Public Class MaskPacker
@@ -30,27 +31,68 @@ Public Class MaskPacker
 
                             Using packed As SKBitmap = New SKBitmap(w, h, SKColorType.Rgba8888, SKAlphaType.Unpremul)
 
+                                Dim rPtr As IntPtr = rImg.GetPixels()
+                                Dim gPtr As IntPtr = If(gImg IsNot Nothing, gImg.GetPixels(), IntPtr.Zero)
+                                Dim bPtr As IntPtr = If(bImg IsNot Nothing, bImg.GetPixels(), IntPtr.Zero)
+                                Dim aPtr As IntPtr = If(aImg IsNot Nothing, aImg.GetPixels(), IntPtr.Zero)
+
+                                Dim dstPtr As IntPtr = packed.GetPixels()
+
+                                Dim rStride As Integer = rImg.RowBytes
+                                Dim gStride As Integer = If(gImg IsNot Nothing, gImg.RowBytes, 0)
+                                Dim bStride As Integer = If(bImg IsNot Nothing, bImg.RowBytes, 0)
+                                Dim aStride As Integer = If(aImg IsNot Nothing, aImg.RowBytes, 0)
+
+                                Dim dstStride As Integer = packed.RowBytes
+
                                 For y As Integer = 0 To h - 1
+
                                     cancel.ThrowIfCancellationRequested()
 
                                     For x As Integer = 0 To w - 1
 
-                                        Dim rV As Byte = GetLuma8(rImg.GetPixel(x, y))
+                                        Dim rOffset As Integer = y * rStride + x * 4
+                                        Dim rColor As Integer = Marshal.ReadInt32(rPtr, rOffset)
 
-                                        Dim gV As Byte =
-                                        If(gImg IsNot Nothing, GetLuma8(gImg.GetPixel(x, y)), CByte(255))
+                                        Dim rV As Byte = GetLuma8(ColorFromRgba(rColor))
 
-                                        Dim bV As Byte =
-                                        If(bImg IsNot Nothing, GetLuma8(bImg.GetPixel(x, y)), CByte(0))
+                                        Dim gV As Byte = 255
+                                        If gPtr <> IntPtr.Zero Then
+                                            Dim gOffset As Integer = y * gStride + x * 4
+                                            gV = GetLuma8(ColorFromRgba(Marshal.ReadInt32(gPtr, gOffset)))
+                                        End If
 
-                                        Dim aV As Byte =
-                                        If(aImg IsNot Nothing, GetLuma8(aImg.GetPixel(x, y)), CByte(0))
+                                        Dim bV As Byte = 0
+                                        If bPtr <> IntPtr.Zero Then
+                                            Dim bOffset As Integer = y * bStride + x * 4
+                                            bV = GetLuma8(ColorFromRgba(Marshal.ReadInt32(bPtr, bOffset)))
+                                        End If
 
-                                        packed.SetPixel(x, y, New SKColor(rV, gV, bV, aV))
+                                        Dim aV As Byte = 0
+                                        If aPtr <> IntPtr.Zero Then
+                                            Dim aOffset As Integer = y * aStride + x * 4
+                                            aV = GetLuma8(ColorFromRgba(Marshal.ReadInt32(aPtr, aOffset)))
+                                        End If
+
+                                        Dim packedValue As Integer =
+                                        CInt(rV) Or
+                                        (CInt(gV) << 8) Or
+                                        (CInt(bV) << 16) Or
+                                        (CInt(aV) << 24)
+
+                                        Dim dstOffset As Integer = y * dstStride + x * 4
+
+                                        Marshal.WriteInt32(dstPtr, dstOffset, packedValue)
+
                                     Next
 
-                                    If y Mod 8 = 0 Then progress?.Report(y * yInc)
+                                    If y Mod 8 = 0 Then
+                                        progress?.Report(y * yInc)
+                                    End If
+
                                 Next
+
+                                packed.NotifyPixelsChanged()
 
                                 progress?.Report((h * yInc) + 1) ' 100% + done signal
                                 Using skImage As SKImage = SKImage.FromBitmap(packed)
@@ -108,5 +150,16 @@ Public Class MaskPacker
         If l < 0 Then l = 0
         If l > 255 Then l = 255
         Return CByte(l)
+    End Function
+
+    Private Shared Function ColorFromRgba(value As Integer) As SKColor
+
+        Return New SKColor(
+        CByte(value And &HFF),
+        CByte((value >> 8) And &HFF),
+        CByte((value >> 16) And &HFF),
+        CByte((value >> 24) And &HFF)
+    )
+
     End Function
 End Class
